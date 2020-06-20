@@ -91,7 +91,7 @@ class Controller:
 
         return u
 
-    def run(self, yr, x1, x3, F, dyr, ddyr, dddyr):
+    def run(self, yr, x1, x2, x3, F, dyr, ddyr, dddyr):
         # update
         # self._update_yr_deri(yr)
         self.dyr = dyr
@@ -101,7 +101,7 @@ class Controller:
         # calculation
         z1 = self._calc_z1(x1, yr)
         alpha1 = self._calc_alpha1(z1, self.dyr)
-        x2 = self._calc_x2(x1)
+        # x2 = self._calc_x2(x1)
         z2 = self._calc_z2(x2, alpha1)
         alpha2 = self._calc_alpha2(z1, z2, x2, F, self.dyr, self.ddyr)
         z3 = self._calc_z3(x3, alpha2)
@@ -140,12 +140,12 @@ if __name__ == "__main__":
 
     for i in range(sim_step):
         # fake sensor
-        x1, _, x3 = model.get_state()
+        x1, x2, x3 = model.get_state()
         # update observer
         observer.update_f(x1, x3)
         est_f = observer.get_f()
         # run controller
-        u = control_obj.run(yr[i], x1, x3, est_f, dyr_lst[i], ddyr_lst[i], dddyr_lst[i])
+        u = control_obj.run(yr[i], x1, x2, x3, est_f, dyr_lst[i], ddyr_lst[i], dddyr_lst[i])
         # update model
         model.update(f[i], u)
         output_lst.append(model.get_y())
