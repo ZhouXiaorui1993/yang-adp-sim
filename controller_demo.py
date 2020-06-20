@@ -1,6 +1,7 @@
 #!/usr/bin/env/python3
 # -*- coding: utf-8 -*-
-from  Model_demo import Model, Observer
+from  config import *
+from Model_demo import Model, Observer
 
 
 class Controller:
@@ -14,14 +15,6 @@ class Controller:
         self.theta = theta0
 
         # constant
-        m = 2.2
-        B = 300
-        beta_e = 6.86e08
-        V1 = 14.25e-5
-        A1 = 14.61e-4
-        Ct = 4.721e-13  # m5 / (N * s)
-        Kq = 0.5774
-        Ka = 0.0125
         self.a1 = 1/m
         self.a2 = B/m
         self.a3 = 4*beta_e*Kq*Ka/V1
@@ -65,7 +58,7 @@ class Controller:
         last_ddyr = self.ddyr
         self.dyr = (yr-last_yr)/self.dt
         self.ddyr = (self.dyr-last_dyr)/self.dt
-        self.dddyr = (self.dddyr-last_ddyr)/self.dt
+        self.dddyr = (self.ddyr-last_ddyr)/self.dt
         self.yr = yr
 
     @staticmethod
@@ -94,13 +87,16 @@ class Controller:
                 v5, F, dyr, ddyr, dddyr):
         u = (1/self.a3) * (-self.a1*z2-self.c3*z3 + self.a4*x2 +
                            theta*x3 + v1*x2 + v2*self.a1*x3 -
-                           self.a2*v2*x2 - z3*F + v3*dyr + v4*ddyr + v5*dddyr)
+                           self.a2*v2*x2 - v2*F + v3*dyr + v4*ddyr + v5*dddyr)
 
         return u
 
-    def run(self, yr, x1, x3, F):
+    def run(self, yr, x1, x3, F, dyr, ddyr, dddyr):
         # update
-        self._update_yr_deri(yr)
+        # self._update_yr_deri(yr)
+        self.dyr = dyr
+        self.ddyr = ddyr
+        self.dddyr = dddyr
 
         # calculation
         z1 = self._calc_z1(x1, yr)
@@ -127,14 +123,17 @@ if __name__ == "__main__":
     observer = Observer(dt)
     model = Model(dt, x1_0=0, x2_0=0, x3_0=0)  # TODO: set correct init value
     theta0 = 8.5
-
     control_obj = Controller(theta0, dt)
 
-    # fake load
-    f = np.sin(np.arange(sim_step)) * 0.001
-
     # fake input
-    yr = 0.05 * np.sin(10 * np.pi * np.arange(sim_step)*dt)
+    t = np.arange(sim_step) * dt
+    yr = 0.05 * np.sin(10 * np.pi * t)
+    # fake load
+    f = 1 / m * 100 * np.sin(0.01 * t)
+    # debug
+    dyr_lst = 0.05 * 10 * np.pi * np.cos(10 * np.pi * t)
+    ddyr_lst = -0.05 * (10 * np.pi) * (10 * np.pi) * np.sin(10 * np.pi * t)
+    dddyr_lst = -0.05 * (10 * np.pi) * (10 * np.pi) * (10 * np.pi) * np.cos(10 * np.pi * t)
     # yr = [0.05]*sim_step
 
     output_lst = []
@@ -146,7 +145,7 @@ if __name__ == "__main__":
         observer.update_f(x1, x3)
         est_f = observer.get_f()
         # run controller
-        u = control_obj.run(yr[i], x1, x3, est_f)
+        u = control_obj.run(yr[i], x1, x3, est_f, dyr_lst[i], ddyr_lst[i], dddyr_lst[i])
         # update model
         model.update(f[i], u)
         output_lst.append(model.get_y())
@@ -157,7 +156,10 @@ if __name__ == "__main__":
     assert len(output_lst) == sim_step
 
     plt.figure()
-    # plt.plot(x, yr, "-", label="ref input")
+    plt.plot(x, yr, "-", label="yr")
     plt.plot(x, output_lst, "-.", label="output")
+    # plt.plot(x, dyr_lst, label="dyr")
+    # plt.plot(x, ddyr_lst, label="ddyr")
+    # plt.plot(x, dddyr_lst, label="dddyr")
     plt.legend()
     plt.show()

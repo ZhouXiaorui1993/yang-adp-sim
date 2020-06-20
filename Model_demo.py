@@ -1,5 +1,6 @@
 #!/usr/bin/env/python3
 # -*- coding: utf-8 -*-
+from config import *
 
 
 class Model:
@@ -9,15 +10,6 @@ class Model:
         self.x3 = x3_0
         self.dt = dt
 
-        # TODO: global var
-        m = 2.2
-        B = 300
-        beta_e = 6.86e08
-        V1 = 14.25e-5
-        A1 = 14.61e-4
-        Ct = 4.721e-13  #  m5 / (N * s)
-        Kq = 0.5774
-        Ka = 0.0125
         self.a1 = 1/m
         self.a2 = B/m
         self.a3 = 4*beta_e*Kq*Ka/V1
