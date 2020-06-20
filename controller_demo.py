@@ -14,15 +14,14 @@ class Controller:
         self.theta0 = theta0
         self.theta = theta0
 
-        # constant
         self.a1 = 1/m
         self.a2 = B/m
         self.a3 = 4*beta_e*Kq*Ka/V1
         self.a4 = 4*beta_e*A1/V1
 
-        self.c1 = 100
-        self.c2 = 100
-        self.c3 = 100
+        self.c1 = 200
+        self.c2 = 200
+        self.c3 = 200
         self.K1 = -self.c1  # d_alpha1/d_x1
         self.K2 = self.c1  # d_alpha1/d_yr
         self.K3 = 1
@@ -33,7 +32,7 @@ class Controller:
         self.v5 = 1/self.a1  # d_alpha2/d_ddyr
 
         self.k = 0.05  # sigma
-        self.gamma = 1
+        self.gamma = 0.1
 
         # other vars
         self.yr = 0
@@ -116,7 +115,7 @@ class Controller:
 if __name__ == "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
-    dt = 0.01
+    dt = 0.0001
     sim_time = 10
     sim_step = int(sim_time/dt)
 
@@ -125,11 +124,12 @@ if __name__ == "__main__":
     theta0 = 8.5
     control_obj = Controller(theta0, dt)
 
-    # fake input
-    t = np.arange(sim_step) * dt
-    yr = 0.05 * np.sin(10 * np.pi * t)
     # fake load
-    f = 1 / m * 100 * np.sin(0.01 * t)
+    t = np.arange(sim_step) * dt
+    f = np.sin(0.01*t) * 100/2.2
+
+    # fake input
+    yr = 0.05 * np.sin(10 * np.pi * t)
     # debug
     dyr_lst = 0.05 * 10 * np.pi * np.cos(10 * np.pi * t)
     ddyr_lst = -0.05 * (10 * np.pi) * (10 * np.pi) * np.sin(10 * np.pi * t)
